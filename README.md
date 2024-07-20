@@ -1,7 +1,5 @@
 # Richies-Transcribe, a Discord Voice Message Transcription Bot
 
-### README.md
-
 ```markdown
 # Discord Voice Message Transcription Bot
 
