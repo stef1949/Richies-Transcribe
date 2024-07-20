@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e  # Exit immediately if a command exits with a non-zero status
+
 # Check if Python is installed
 if ! command -v python3 &>/dev/null; then
     echo "Python3 is not installed. Please install Python3 and try again."
@@ -24,6 +26,10 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     sudo apt-get update
     sudo apt-get install -y ffmpeg
 elif [[ "$OSTYPE" == "darwin"* ]]; then
+    if ! command -v brew &>/dev/null; then
+        echo "Homebrew is not installed. Please install Homebrew and try again."
+        exit 1
+    fi
     brew install ffmpeg
 fi
 
