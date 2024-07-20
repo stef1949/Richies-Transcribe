@@ -29,7 +29,7 @@ executor = ThreadPoolExecutor()
 # Rate limiting setup
 user_message_timestamps = defaultdict(list)
 RATE_LIMIT = 2  # Number of allowed messages
-TIME_PERIOD = timedelta(seconds=10)  # Time period for rate limit (5 minutes)
+TIME_PERIOD = timedelta(seconds=10)  # Time period for rate limit
 
 def is_rate_limited(user_id):
     now = datetime.now()
@@ -45,6 +45,9 @@ def update_rate_limit(user_id):
 # Event handler for when the bot is ready
 @bot.event
 async def on_ready():
+    bot.uptime = datetime.now()  # Track bot uptime
+    bot.processed_messages = 0  # Track number of processed messages
+    await bot.change_presence(activity=discord.Game(name="Ready for commands"))
     logging.info(f'Bot is ready. Logged in as {bot.user}')
 
 # Ping command to test if the bot is responding
@@ -53,11 +56,35 @@ async def ping(ctx):
     await ctx.send('Pong!')
     logging.info('Ping command received and Pong sent')
 
+# Status command to check bot status
+@bot.command()
+async def status(ctx):
+    await bot.change_presence(activity=discord.Game(name="Checking status..."))
+    
+    uptime = datetime.now() - bot.uptime
+    num_users = len(user_message_timestamps)
+    
+    embed = discord.Embed(title="Bot Status", color=0x00ff00)
+    embed.add_field(name="Uptime", value=str(uptime), inline=False)
+    embed.add_field(name="Processed Messages", value=str(bot.processed_messages), inline=False)
+    embed.add_field(name="Users Interacted", value=str(num_users), inline=False)
+    
+    await ctx.send(embed=embed)
+    logging.info('Status command received and status sent')
+    
+    # Reset status after checking
+    await bot.change_presence(activity=discord.Game(name="Ready for commands"))
+
 # Event handler for when a message is sent
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
+
+    if not hasattr(bot, 'processed_messages'):
+        bot.processed_messages = 0  # Ensure the attribute exists
+
+    bot.processed_messages += 1  # Increment processed messages counter
 
     # Check if the message has voice message attachments
     if message.attachments:
@@ -76,6 +103,7 @@ async def on_message(message):
 
 async def process_voice_message(message, attachment):
     try:
+        await bot.change_presence(activity=discord.Game(name="Processing voice message..."))
         audio_file_path = await download_file(attachment)
         wav_file_path = await convert_to_wav(audio_file_path)
         transcription = await transcribe_audio_with_whisper(wav_file_path)
@@ -95,6 +123,9 @@ async def process_voice_message(message, attachment):
         if os.path.exists(wav_file_path):
             os.remove(wav_file_path)
             logging.info(f'Deleted temporary file {wav_file_path}')
+        
+        # Reset status after processing
+        await bot.change_presence(activity=discord.Game(name="Ready for commands"))
 
 async def download_file(attachment):
     unique_id = uuid.uuid4()
