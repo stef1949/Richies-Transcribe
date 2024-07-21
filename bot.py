@@ -6,7 +6,7 @@ import whisper
 from pydub import AudioSegment
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from collections import defaultdict
+from collections import deque, defaultdict
 from datetime import datetime, timedelta
 import uuid
 
@@ -27,15 +27,15 @@ model = whisper.load_model("base.en")
 executor = ThreadPoolExecutor()
 
 # Rate limiting setup
-user_message_timestamps = defaultdict(list)
+user_message_timestamps = defaultdict(lambda: deque(maxlen=2))
 RATE_LIMIT = 2  # Number of allowed messages
 TIME_PERIOD = timedelta(seconds=10)  # Time period for rate limit
 
 def is_rate_limited(user_id):
     now = datetime.now()
     user_timestamps = user_message_timestamps[user_id]
-    user_timestamps = [timestamp for timestamp in user_timestamps if now - timestamp < TIME_PERIOD]
-    user_message_timestamps[user_id] = user_timestamps
+    while user_timestamps and now - user_timestamps[0] > TIME_PERIOD:
+        user_timestamps.popleft()
     return len(user_timestamps) >= RATE_LIMIT
 
 def update_rate_limit(user_id):
@@ -117,12 +117,7 @@ async def process_voice_message(message, attachment, processing_message):
         logging.error(f'Error processing {attachment.filename}: {e}')
     finally:
         # Clean up the downloaded and converted files
-        if os.path.exists(audio_file_path):
-            os.remove(audio_file_path)
-            logging.info(f'Deleted temporary file {audio_file_path}')
-        if os.path.exists(wav_file_path):
-            os.remove(wav_file_path)
-            logging.info(f'Deleted temporary file {wav_file_path}')
+        await cleanup_files(audio_file_path, wav_file_path)
         
         # Delete the "Processing voice message..." message
         await processing_message.delete()
@@ -161,5 +156,11 @@ async def transcribe_audio_with_whisper(wav_file_path):
         logging.error(f"Transcription failed: {e}")
         return None
 
+async def cleanup_files(*file_paths):
+    for file_path in file_paths:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            logging.info(f'Deleted temporary file {file_path}')
+
 # Add your bot token here
-bot.run(os.environ["DISCORD_BOT_TOKEN"])
+bot.run(os.environ["BOT_TOKEN"])
