@@ -94,14 +94,14 @@ async def on_message(message):
                     await message.reply("You are being rate limited. Please wait before sending another voice message.")
                     logging.info(f'Rate limit hit for user {message.author.id}')
                 else:
-                    await message.channel.send("Processing voice message...")
+                    processing_message = await message.channel.send("Processing voice message...")
                     logging.info(f'Received voice message from {message.author}: {attachment.filename}')
                     update_rate_limit(message.author.id)
-                    asyncio.create_task(process_voice_message(message, attachment))
+                    asyncio.create_task(process_voice_message(message, attachment, processing_message))
     
     await bot.process_commands(message)
 
-async def process_voice_message(message, attachment):
+async def process_voice_message(message, attachment, processing_message):
     try:
         await bot.change_presence(activity=discord.Game(name="Processing voice message..."))
         audio_file_path = await download_file(attachment)
@@ -123,6 +123,9 @@ async def process_voice_message(message, attachment):
         if os.path.exists(wav_file_path):
             os.remove(wav_file_path)
             logging.info(f'Deleted temporary file {wav_file_path}')
+        
+        # Delete the "Processing voice message..." message
+        await processing_message.delete()
         
         # Reset status after processing
         await bot.change_presence(activity=discord.Game(name="Ready for commands"))
@@ -159,4 +162,4 @@ async def transcribe_audio_with_whisper(wav_file_path):
         return None
 
 # Add your bot token here
-bot.run(os.environ["BOT_TOKEN"])
+bot.run(os.environ["DISCORD_BOT_TOKEN"])
