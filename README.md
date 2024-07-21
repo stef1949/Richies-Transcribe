@@ -1,9 +1,16 @@
-# Richies-Transcribe, a Discord Voice Message Transcription Bot
-
-```markdown
 # Discord Voice Message Transcription Bot
 
 This Discord bot uses OpenAI's Whisper model to transcribe voice messages into English text. The bot listens for voice messages in Discord channels and replies with the transcribed text.
+
+## Table of Contents
+
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
@@ -19,71 +26,53 @@ This Discord bot uses OpenAI's Whisper model to transcribe voice messages into E
 
 ## Installation
 
-1. **Clone the Repository**
+### 1. Clone the Repository
 
-   ```bash
-   git clone https://github.com/yourusername/discord-voice-transcription-bot.git
-   cd discord-voice-transcription-bot
-   ```
-
-2. **Set Up Virtual Environment**
-
-   ```bash
-   python -m venv myenv
-   source myenv/bin/activate  # On Windows: myenv\Scripts\activate
-   ```
-
-3. **Install Dependencies**
-
-   ```bash
-   pip install discord.py requests pydub torch
-   pip install git+https://github.com/openai/whisper.git@main  # Replace 'main' with the specific commit or tag if known
-   ```
-
-4. **Install `ffmpeg`**
-
-   - **Windows**: Download `ffmpeg` from [FFmpeg](https://ffmpeg.org/download.html) and add it to your system PATH.
-   - **macOS**: Install using Homebrew:
-     ```bash
-     brew install ffmpeg
-     ```
-   - **Linux**: Install using your package manager. For example, on Ubuntu:
-     ```bash
-     sudo apt-get install ffmpeg
-     ```
+```bash
+git clone https://github.com/yourusername/discord-voice-transcription-bot.git
+cd discord-voice-transcription-bot
+```
+### 2. Run the Setup Script
+   For Unix-based systems (Linux and macOS):
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+   For Windows systems:
+```bash
+setup.bat
+```
 
 ## Configuration
+### 1. Create a Discord Bot
+- Go to the Discord Developer Portal.
+- Create a new application.
+- Go to the "Bot" tab and click "Add Bot".
+- Copy the bot token.
 
-1. **Create a Discord Bot**
-
-   - Go to the [Discord Developer Portal](https://discord.com/developers/applications).
-   - Create a new application.
-   - Go to the "Bot" tab and click "Add Bot".
-   - Copy the bot token.
-
-2. **Update the Bot Token**
-
-   - In the `bot.py` script, replace `YOUR_DISCORD_BOT_TOKEN` with your actual bot token.
-
+### 2. Create a '.env' File
+Create a .env file in the root directory of the project and add your Discord bot token:
+```env
+DISCORD_BOT_TOKEN=your_discord_bot_token_here
+```
 ## Usage
+### 1. Activate the Virtual Environment
+On Unix-based systems:
+```bash
+source myenv/bin/activate
+```
+On Windows systems:
+```bash
+call myenv\Scripts\activate
+```
 
-1. **Run the Bot**
-
-   ```bash
-   python bot.py
-   ```
-
-2. **Test the Bot**
-
-   - Invite the bot to your Discord server using the OAuth2 URL.
-   - In your Discord server, type `!ping` to test if the bot is responsive. The bot should reply with "Pong!".
-   - Send a voice message in the text channel. The bot should process the voice message, transcribe it using Whisper, and reply to the original message with the transcription.
+### 2. Run the Bot
+```bash
+python bot.py
+```
 
 ## Contributing
-
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
 
 ## License
-
 This project is licensed under the MIT License.
-```
