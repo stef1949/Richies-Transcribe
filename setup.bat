@@ -36,13 +36,11 @@ pip install discord.py==1.7.3 whisperx==1.0.0 pydub==0.25.1 python-dotenv==0.21.
 
 REM Prompt user for environment variables
 set /p BOT_TOKEN=Enter your Discord bot token: 
-set /p OTHER_VAR=Enter other required variables: 
 
 REM Create .env file with the provided variables
 echo Creating .env file...
 (
     echo BOT_TOKEN=%BOT_TOKEN%
-    echo OTHER_VAR=%OTHER_VAR%
 ) > .env
 
 echo .env file created with the provided environment variables.
