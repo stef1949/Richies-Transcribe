@@ -10,6 +10,8 @@ fi
 
 # Name of the conda environment
 ENV_NAME="discordbot"
+SERVICE_NAME="discord_bot.service"
+SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
 
 # Check if Conda is installed
 if ! command -v conda &>/dev/null; then
@@ -56,18 +58,48 @@ pip install --upgrade pip
 echo "Installing Python dependencies..."
 pip install requirements.txt
 
-# Install ffmpeg
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    sudo apt-get update
-    sudo apt-get install -y ffmpeg
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    if ! command -v brew &>/dev/null; then
-        echo "Homebrew is not installed. Please install Homebrew and try again."
-        exit 1
-    fi
-    brew install ffmpeg
-fi
+# Prompt user for environment variables
+read -p "Enter your Discord bot token: " BOT_TOKEN # Add other required prompts as needed
+
+# Create .env file with the provided variables
+echo "Creating .env file..."
+echo "BOT_TOKEN=$BOT_TOKEN" > .env # Add other required variables if needed
+
+echo ".env file created with the provided environment variables."
+
+# Get the absolute path of the script to use in the service file
+SCRIPT_PATH=$(readlink -f "$0")
+
+# Create the systemd service unit file
+echo "Creating systemd service unit file..."
+sudo bash -c "cat > $SERVICE_PATH" <<EOL
+[Unit]
+Description=Discord Bot Service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=$(whoami)
+WorkingDirectory=$(dirname "$SCRIPT_PATH")
+ExecStart=$(which conda) run -n $ENV_NAME python3 $(dirname "$SCRIPT_PATH")/bot.py
+EnvironmentFile=$(dirname "$SCRIPT_PATH")/.env
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Reload systemd to apply the new service
+sudo systemctl daemon-reload
+
+# Enable the service to start on boot
+sudo systemctl enable $SERVICE_NAME
+
+# Start the service
+sudo systemctl start $SERVICE_NAME
 
 # Instructions to create .env file
+echo "Systemd service '$SERVICE_NAME' created and started."
 echo "Conda environment '$ENV_NAME' created and dependencies installed."
 echo "Activate the environment with: conda activate $ENV_NAME"
