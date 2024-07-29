@@ -1,15 +1,3 @@
-import os
-import logging
-import discord
-from discord.ext import commands
-import whisperx
-from pydub import AudioSegment
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
-from collections import defaultdict
-from datetime import datetime, timedelta
-import uuid
-from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
