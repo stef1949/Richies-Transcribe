@@ -8,18 +8,53 @@ if ! command -v python3 &>/dev/null; then
     exit 1
 fi
 
-# Create virtual environment
-python3 -m venv myenv
+# Name of the conda environment
+ENV_NAME="discordbot"
+
+# Check if Conda is installed
+if ! command -v conda &>/dev/null; then
+    echo "Conda is not installed. Please install Conda and try again."
+    exit 1
+fi
+
+# Check if ffmpeg is installed, if not install it based on OS type
+if ! command_exists ffmpeg ; then
+    echo "ffmpeg is not installed. Installing ffmpeg..."
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        if ! command_exists brew ; then
+            echo "Homebrew is not installed. Please install Homebrew and try again."
+            exit 1
+        fi
+        brew install ffmpeg
+    else
+        echo "Unsupported OS type: $OSTYPE"
+        exit 1
+    fi
+else
+    echo "ffmpeg is already installed."
+fi
+
+# Create a new conda environment with Python
+if conda info --envs | grep -q "^$ENV_NAME\s" ; then
+    echo "Conda environment '$ENV_NAME' already exists. Skipping environment creation."
+else
+    echo "Creating conda environment '$ENV_NAME' with Python..."
+    conda create -n $ENV_NAME python -y
+fi
 
 # Activate virtual environment
-source myenv/bin/activate
+echo "Activating conda environment '$ENV_NAME'..."
+source activate $ENV_NAME
 
 # Upgrade pip
 pip install --upgrade pip
 
 # Install required packages
-pip install discord.py requests pydub torch python-dotenv
-pip install git+https://github.com/openai/whisper.git
+echo "Installing Python dependencies..."
+pip install requirements.txt
 
 # Install ffmpeg
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -34,7 +69,5 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 # Instructions to create .env file
-echo "Please create a .env file in the project root directory with the following content:"
-echo "DISCORD_BOT_TOKEN=your_discord_bot_token_here"
-
-echo "Setup complete. Activate your virtual environment using 'source myenv/bin/activate' and run the bot using 'python bot.py'."
+echo "Conda environment '$ENV_NAME' created and dependencies installed."
+echo "Activate the environment with: conda activate $ENV_NAME"
