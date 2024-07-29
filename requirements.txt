@@ -1,6 +1,5 @@
 discord.py
-requests
+whisperx
 pydub
-torch
-git+https://github.com/openai/whisper.git
 python-dotenv
+asyncio
