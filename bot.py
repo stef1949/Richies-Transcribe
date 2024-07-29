@@ -2,13 +2,17 @@ import os
 import logging
 import discord
 from discord.ext import commands
-import whisper
+import whisperx
 from pydub import AudioSegment
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from collections import deque, defaultdict
+from collections import defaultdict
 from datetime import datetime, timedelta
 import uuid
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -20,34 +24,41 @@ intents.message_content = True
 # Create bot instance with command prefix and intents
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-# Load Whisper model
-model = whisper.load_model("base.en")
+# Load WhisperX model
+model = whisperx.load_model("base", device="cpu", compute_type="int8")
 
 # Create a ThreadPoolExecutor for parallel processing
 executor = ThreadPoolExecutor()
 
 # Rate limiting setup
-user_message_timestamps = defaultdict(lambda: deque(maxlen=2))
+user_message_timestamps = defaultdict(list)
 RATE_LIMIT = 2  # Number of allowed messages
-TIME_PERIOD = timedelta(seconds=10)  # Time period for rate limit
+TIME_PERIOD = timedelta(seconds=10)  # Time period for rate limit (5 minutes)
 
 def is_rate_limited(user_id):
     now = datetime.now()
     user_timestamps = user_message_timestamps[user_id]
-    while user_timestamps and now - user_timestamps[0] > TIME_PERIOD:
-        user_timestamps.popleft()
+    user_timestamps = [timestamp for timestamp in user_timestamps if now - timestamp < TIME_PERIOD]
+    user_message_timestamps[user_id] = user_timestamps
     return len(user_timestamps) >= RATE_LIMIT
 
 def update_rate_limit(user_id):
     now = datetime.now()
     user_message_timestamps[user_id].append(now)
 
+def remove_repetitive_lines(text):
+    lines = text.split('\n')
+    seen_lines = set()
+    unique_lines = []
+    for line in lines:
+        if line not in seen_lines:
+            unique_lines.append(line)
+            seen_lines.add(line)
+    return '\n'.join(unique_lines)
+
 # Event handler for when the bot is ready
 @bot.event
 async def on_ready():
-    bot.uptime = datetime.now()  # Track bot uptime
-    bot.processed_messages = 0  # Track number of processed messages
-    await bot.change_presence(activity=discord.Game(name="Ready for commands"))
     logging.info(f'Bot is ready. Logged in as {bot.user}')
 
 # Ping command to test if the bot is responding
@@ -56,74 +67,73 @@ async def ping(ctx):
     await ctx.send('Pong!')
     logging.info('Ping command received and Pong sent')
 
-# Status command to check bot status
-@bot.command()
-async def status(ctx):
-    await bot.change_presence(activity=discord.Game(name="Checking status..."))
-    
-    uptime = datetime.now() - bot.uptime
-    num_users = len(user_message_timestamps)
-    
-    embed = discord.Embed(title="Bot Status", color=0x00ff00)
-    embed.add_field(name="Uptime", value=str(uptime), inline=False)
-    embed.add_field(name="Processed Messages", value=str(bot.processed_messages), inline=False)
-    embed.add_field(name="Users Interacted", value=str(num_users), inline=False)
-    
-    await ctx.send(embed=embed)
-    logging.info('Status command received and status sent')
-    
-    # Reset status after checking
-    await bot.change_presence(activity=discord.Game(name="Ready for commands"))
-
 # Event handler for when a message is sent
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
 
-    if not hasattr(bot, 'processed_messages'):
-        bot.processed_messages = 0  # Ensure the attribute exists
-
-    bot.processed_messages += 1  # Increment processed messages counter
-
     # Check if the message has voice message attachments
     if message.attachments:
         for attachment in message.attachments:
             if attachment.content_type and attachment.content_type.startswith('audio/'):
                 if is_rate_limited(message.author.id):
-                    await message.reply("You are being rate limited. Please wait before sending another voice message.")
+                    embed = discord.Embed(
+                        title="Rate Limit Reached",
+                        description="You are being rate limited. Please wait before sending another voice message.",
+                        color=discord.Color.red()
+                    )
+                    await message.reply(embed=embed)
                     logging.info(f'Rate limit hit for user {message.author.id}')
                 else:
-                    processing_message = await message.channel.send("Processing voice message...")
+                    embed = discord.Embed(
+                        title="Voice Message",
+                        description="Processing voice message...",
+                        color=discord.Color.blue()
+                    )
+                    processing_message = await message.reply(embed=embed)
                     logging.info(f'Received voice message from {message.author}: {attachment.filename}')
                     update_rate_limit(message.author.id)
                     asyncio.create_task(process_voice_message(message, attachment, processing_message))
-    
+
     await bot.process_commands(message)
 
 async def process_voice_message(message, attachment, processing_message):
+    audio_file_path = None
+    wav_file_path = None
     try:
-        await bot.change_presence(activity=discord.Game(name="Processing voice message..."))
         audio_file_path = await download_file(attachment)
         wav_file_path = await convert_to_wav(audio_file_path)
-        transcription = await transcribe_audio_with_whisper(wav_file_path)
+        transcription = await transcribe_audio_with_whisperx(wav_file_path)
         if transcription:
-            await message.reply(f'Transcription: {transcription}')
+            cleaned_transcription = remove_repetitive_lines(transcription)
+            embed = discord.Embed(
+                title="Transcription",
+                description=cleaned_transcription,
+                color=discord.Color.green()
+            )
+            await message.reply(embed=embed)
             logging.info(f'Transcription sent for {attachment.filename}')
         else:
-            await message.reply("Sorry, I couldn't transcribe the audio.")
+            embed = discord.Embed(
+                title="Transcription Failed",
+                description="Sorry, I couldn't transcribe the audio.",
+                color=discord.Color.red()
+            )
+            await message.reply(embed=embed)
             logging.warning(f'Failed to transcribe {attachment.filename}')
     except Exception as e:
         logging.error(f'Error processing {attachment.filename}: {e}')
     finally:
         # Clean up the downloaded and converted files
-        await cleanup_files(audio_file_path, wav_file_path)
-        
-        # Delete the "Processing voice message..." message
+        if audio_file_path and os.path.exists(audio_file_path):
+            os.remove(audio_file_path)
+            logging.info(f'Deleted temporary file {audio_file_path}')
+        if wav_file_path and os.path.exists(wav_file_path):
+            os.remove(wav_file_path)
+            logging.info(f'Deleted temporary file {wav_file_path}')
+        # Delete the processing message
         await processing_message.delete()
-        
-        # Reset status after processing
-        await bot.change_presence(activity=discord.Game(name="Ready for commands"))
 
 async def download_file(attachment):
     unique_id = uuid.uuid4()
@@ -145,22 +155,17 @@ def convert_audio(audio_file_path, wav_file_path):
     audio = AudioSegment.from_file(audio_file_path)
     audio.export(wav_file_path, format='wav')
 
-async def transcribe_audio_with_whisper(wav_file_path):
+async def transcribe_audio_with_whisperx(wav_file_path):
     loop = asyncio.get_running_loop()
     try:
         result = await loop.run_in_executor(executor, model.transcribe, wav_file_path)
-        text = result['text']
+        segments = result["segments"]
+        text = ' '.join([segment["text"] for segment in segments])
         logging.info(f'Transcription successful: {text}')
         return text
     except Exception as e:
         logging.error(f"Transcription failed: {e}")
         return None
 
-async def cleanup_files(*file_paths):
-    for file_path in file_paths:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            logging.info(f'Deleted temporary file {file_path}')
-
-# Add your bot token here
-bot.run(os.environ["BOT_TOKEN"])
+# Add your bot token from the environment variable
+bot.run(os.environ['BOT_TOKEN'])
