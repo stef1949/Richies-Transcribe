@@ -1,19 +1,15 @@
 <p align="center">
-  <a href="https://github.com/m-bain/whisperX/stargazers">
-    <img src="https://img.shields.io/github/stars/m-bain/whisperX.svg?colorA=orange&colorB=orange&logo=github"
+  <a href="https://github.com/stef1949/Richies-Transcribe/tree/main">
+    <img src="https://img.shields.io/github/stars/stef1949/Richies-Transcribe.svg?colorA=orange&colorB=orange&logo=github"
          alt="GitHub stars">
   </a>
-  <a href="https://github.com/m-bain/whisperX/issues">
-        <img src="https://img.shields.io/github/issues/m-bain/whisperx.svg"
+  <a href="https://github.com/stef1949/Richies-Transcribe/issues">
+        <img src="https://img.shields.io/github/issues/stef1949/Richies-Transcribe.svg"
              alt="GitHub issues">
   </a>
-  <a href="https://github.com/m-bain/whisperX/blob/master/LICENSE">
-        <img src="https://img.shields.io/github/license/m-bain/whisperX.svg"
+  <a href="https://github.com/stef1949/Richies-Transcribe/blob/main/LICENSE">
+        <img src="https://img.shields.io/github/license/stef1949/Richies-Transcribe.svg"
              alt="GitHub license">
-  </a>
-  <a href="https://arxiv.org/abs/2303.00747">
-        <img src="http://img.shields.io/badge/Arxiv-2303.00747-B31B1B.svg"
-             alt="ArXiv paper">
   </a>
   <a href="https://twitter.com/intent/tweet?text=&url=https%3A%2F%2Fgithub.com%2Fm-bain%2FwhisperX">
   <img src="https://img.shields.io/twitter/url/https/github.com/m-bain/whisperX.svg?style=social" alt="Twitter">
