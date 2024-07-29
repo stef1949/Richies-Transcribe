@@ -70,7 +70,7 @@ chmod +x setup.sh
 setup.bat
 ```
 
-## Configuration
+## Manual Configuration
 ### 1. Create a Discord Bot
 - Go to the Discord Developer Portal.
 - Create a new application.
@@ -80,26 +80,57 @@ setup.bat
 ### 2. Create a '.env' File
 Create a .env file in the root directory of the project and add your Discord bot token:
 ```env
-DISCORD_BOT_TOKEN=your_discord_bot_token_here
+BOT_TOKEN=your_discord_bot_token_here
 ```
 ## Usage
-### 1. Activate the Virtual Environment
+### 1. Create Virtual Environment
 On Unix-based systems:
 ```bash
-source myenv/bin/activate
+conda create -n discordbot python -y
 ```
 On Windows systems:
 ```bash
-call myenv\Scripts\activate
+conda create -n discordbot python -y
 ```
 
-### 2. Run the Bot
+### 2. Activate the Virtual Environment
+On Unix-based systems:
+```bash
+source activate discordbot
+```
+On Windows systems:
+```bash
+conda activate discordbot
+```
+
+### 3. Run the Bot
 ```bash
 python bot.py
 ```
 
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
+
+## Acknowledgements
+
+We would like to express our gratitude to the following individuals, libraries, and resources that have made this project possible:
+
+### Libraries and Tools
+- **discord.py**: An essential library for interacting with the Discord API. Without this robust library, the development of this bot would not have been possible.
+- **whisperx**: For providing the speech recognition model used in the bot to transcribe audio messages.
+- **pydub**: A fantastic library for audio processing, enabling seamless conversion and handling of audio files within the bot.
+- **python-dotenv**: For simplifying the management of environment variables in the project.
+
+### Platforms
+- **Conda**: For providing a powerful package management and environment management system that made handling dependencies straightforward and efficient.
+
+### Open Source Community
+We extend our sincere thanks to the open-source community for their continuous contributions to libraries and tools that make projects like this possible.
+
+### Inspiration and Support
+- **GitHub**: For offering a collaborative platform for code sharing and project management.
+
+Thank you all for your support and contributions!
 
 ## License
 This project is licensed under the MIT License.
