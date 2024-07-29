@@ -11,7 +11,7 @@
         <img src="https://img.shields.io/github/license/stef1949/Richies-Transcribe.svg"
              alt="GitHub license">
   </a>
-  <a href="https://twitter.com/intent/tweet?text=&url=https%3A%2F%2Fgithub.com%2Fm-bain%2FwhisperX">
+  <a href="https://twitter.com/intent/tweet?text=&url=https://github.com/stef1949/Richies-Transcribe/tree/main">
   <img src="https://img.shields.io/twitter/url/https/github.com/m-bain/whisperX.svg?style=social" alt="Twitter">
   </a>      
 </p>
