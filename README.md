@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://github.com/stef1949/Richies-Transcribe/tree/main">
+  <a href="https://github.com/stef1949/Richies-Transcribe/">
     <img src="https://img.shields.io/github/stars/stef1949/Richies-Transcribe.svg?colorA=orange&colorB=orange&logo=github"
          alt="GitHub stars">
   </a>
@@ -11,7 +11,7 @@
         <img src="https://img.shields.io/github/license/stef1949/Richies-Transcribe.svg"
              alt="GitHub license">
   </a>
-  <a href="https://twitter.com/intent/tweet?text=&url=https://github.com/stef1949/Richies-Transcribe/tree/main">
+  <a href="https://twitter.com/intent/tweet?text=&url=https://github.com/stef1949/Richies-Transcribe/">
   <img src="https://img.shields.io/twitter/url/https/github.com/m-bain/whisperX.svg?style=social" alt="Twitter">
   </a>      
 </p>
