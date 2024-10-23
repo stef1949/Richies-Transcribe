@@ -56,7 +56,7 @@ pip install --upgrade pip
 
 # Install required packages
 echo "Installing Python dependencies..."
-pip install requirements.txt
+pip install -r requirements.txt
 
 # Prompt user for environment variables
 read -p "Enter your Discord bot token: " BOT_TOKEN # Add other required prompts as needed
