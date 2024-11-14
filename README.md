@@ -57,7 +57,7 @@ This Discord bot uses OpenAI's Whisper model to transcribe voice messages into E
 
 ```bash
 git clone https://github.com/stef1949/Richies-Transcribe.git
-cd discordbot
+cd Richies-Transcribe
 ```
 ### 2. Run the Setup Script
    For Unix-based systems (Linux and macOS):
