@@ -21,11 +21,16 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 intents = discord.Intents.default()
 intents.message_content = True
 
+asr_options = {
+    "hotwords":None
+}
+
+
 # Create bot instance with command prefix and intents
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Load WhisperX model
-model = whisperx.load_model("base", device="cpu", compute_type="int8")
+model = whisperx.load_model("base", device="cpu", compute_type="int8", asr_options=asr_options)
 
 # Create a ThreadPoolExecutor for parallel processing
 executor = ThreadPoolExecutor()
